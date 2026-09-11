@@ -10,7 +10,8 @@ import {
   Student
 } from '../types';
 import { saveStudentToFirebase } from '../lib/firebase';
-import { Sparkles, CheckCircle2, Lock, ArrowRight, User, RefreshCw } from 'lucide-react';
+import { sendStudentToGoogleSheets, getGoogleSheetConfig } from '../utils/googleSheets';
+import { Sparkles, CheckCircle2, Lock, ArrowRight, User, RefreshCw, FileSpreadsheet } from 'lucide-react';
 
 interface StudentEntryFormProps {
   onSubmittedSuccess: () => void;
@@ -89,7 +90,12 @@ export default function StudentEntryForm({
       // 1. Save directly to Firebase Firestore (works on Vercel anywhere!)
       await saveStudentToFirebase(studentData);
 
-      // 2. Also try legacy local server if available (quietly in background)
+      // 2. Real-time sync to Google Sheets (if configured)
+      sendStudentToGoogleSheets(studentData).catch((err) => {
+        console.warn('Google Sheets real-time sync skipped or error:', err);
+      });
+
+      // 3. Also try legacy local server if available (quietly in background)
       fetch('/api/students', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -107,6 +113,8 @@ export default function StudentEntryForm({
       onSubmittedSuccess();
     } catch (firebaseErr) {
       console.warn('Firebase submission failed, trying fallback server...', firebaseErr);
+      // Even if Firebase fails, try Google Sheets
+      sendStudentToGoogleSheets(studentData).catch(() => {});
       try {
         const res = await fetch('/api/students', {
           method: 'POST',
@@ -140,6 +148,12 @@ export default function StudentEntryForm({
           <span className="text-xs font-bold text-slate-600">
             현재 우리 반 제출 현황: <strong className="text-indigo-600">{totalSubmissions}명</strong>
           </span>
+          {getGoogleSheetConfig().webhookUrl && (
+            <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+              <FileSpreadsheet className="w-3 h-3 text-emerald-600" />
+              <span>구글 시트 연동 중</span>
+            </span>
+          )}
         </div>
 
         <button
@@ -159,9 +173,17 @@ export default function StudentEntryForm({
           </div>
 
           <div className="space-y-2">
-            <span className="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-extrabold rounded-full border border-emerald-200">
-              제출 완료
-            </span>
+            <div className="flex items-center justify-center gap-2 flex-wrap">
+              <span className="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-extrabold rounded-full border border-emerald-200">
+                제출 완료
+              </span>
+              {getGoogleSheetConfig().webhookUrl && (
+                <span className="px-3 py-1 bg-teal-50 text-teal-700 text-xs font-extrabold rounded-full border border-teal-200 flex items-center gap-1">
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-teal-600" />
+                  <span>구글 시트 실시간 저장됨 📊</span>
+                </span>
+              )}
+            </div>
             <h2 className="text-2xl font-black text-slate-800">
               "{submittedData.name}" ({submittedData.nickname}) 친구의 정보가 등록되었어요!
             </h2>

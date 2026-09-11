@@ -19,6 +19,7 @@ import {
   subscribeTeacherPin,
   updateTeacherPinInFirebase 
 } from './lib/firebase';
+import { sendStudentToGoogleSheets } from './utils/googleSheets';
 
 const TEACHER_SESSION_KEY = 'classroom_teacher_auth_v1';
 const TEACHER_PIN_KEY = 'classroom_teacher_pin_v1';
@@ -92,6 +93,7 @@ export default function App() {
   const handleSaveStudent = async (newStudent: Student) => {
     try {
       await saveStudentToFirebase(newStudent);
+      sendStudentToGoogleSheets(newStudent).catch(() => {});
       fetch('/api/students', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
