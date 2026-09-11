@@ -185,7 +185,7 @@ export default function App() {
       inputOld === '1234';
 
     if (!isValidOldPin) {
-      return { success: false, error: '현재 비밀번호가 일치하지 않습니다. (초기 기본 비밀번호: 1234)' };
+      return { success: false, error: '현재 비밀번호가 일치하지 않습니다.' };
     }
 
     try {

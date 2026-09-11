@@ -224,7 +224,7 @@ app.post('/api/teacher/change-pin', (req, res) => {
   if (inputOldPin !== teacherPin) {
     return res.status(401).json({ 
       success: false, 
-      error: '현재 비밀번호가 일치하지 않습니다. (초기 기본 비밀번호: 1234)' 
+      error: '현재 비밀번호가 일치하지 않습니다.' 
     });
   }
   if (!inputNewPin || inputNewPin.length < 4) {

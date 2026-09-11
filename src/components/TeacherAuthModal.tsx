@@ -65,7 +65,7 @@ export default function TeacherAuthModal({
         onClose();
         setPin('');
       } else {
-        setError('비밀번호가 올바르지 않습니다. (기본값: 1234)');
+        setError('비밀번호가 일치하지 않습니다.');
       }
     } finally {
       setIsLoading(false);
@@ -97,9 +97,6 @@ export default function TeacherAuthModal({
               학생 데이터 관리 및 전체 스무고개 퀴즈 진행을 위해<br />
               <strong>교사 비밀번호</strong>를 입력해 주세요.
             </p>
-            <p className="text-[11px] text-indigo-600 font-semibold bg-indigo-50 py-1 rounded-lg mt-2">
-              💡 초기 기본 비밀번호: <strong>1234</strong>
-            </p>
           </div>
 
           <div>
@@ -110,7 +107,7 @@ export default function TeacherAuthModal({
                 setPin(e.target.value);
                 if (error) setError('');
               }}
-              placeholder="비밀번호 입력 (기본: 1234)"
+              placeholder="비밀번호 입력"
               autoFocus
               className="w-full px-4 py-3 text-center tracking-widest text-lg font-black rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800"
             />
