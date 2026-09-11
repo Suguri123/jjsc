@@ -17,6 +17,7 @@ import {
   deleteStudentFromFirebase, 
   deleteMultipleStudentsFromFirebase,
   subscribeTeacherPin,
+  getTeacherPinFromFirebase,
   updateTeacherPinInFirebase 
 } from './lib/firebase';
 import { sendStudentToGoogleSheets } from './utils/googleSheets';
@@ -165,21 +166,35 @@ export default function App() {
     const inputOld = oldPin.trim();
     const inputNew = newPin.trim();
 
-    if (inputOld !== teacherPin && inputOld !== '1234') {
-      return { success: false, error: '현재 비밀번호가 일치하지 않습니다. (초기 기본 비밀번호: 1234)' };
-    }
-
     if (inputNew.length < 4) {
       return { success: false, error: '새 비밀번호는 최소 4자리 이상이어야 합니다.' };
     }
 
+    // Check against Firebase stored pin, local state, or default '1234'
+    let currentServerPin = teacherPin;
     try {
-      // 1. Update in Firebase Firestore (works on Vercel!)
+      currentServerPin = await getTeacherPinFromFirebase(teacherPin);
+    } catch {
+      // ignore
+    }
+
+    const isValidOldPin =
+      inputOld === currentServerPin ||
+      inputOld === teacherPin ||
+      inputOld === (localStorage.getItem(TEACHER_PIN_KEY) || '') ||
+      inputOld === '1234';
+
+    if (!isValidOldPin) {
+      return { success: false, error: '현재 비밀번호가 일치하지 않습니다. (초기 기본 비밀번호: 1234)' };
+    }
+
+    try {
+      // 1. Update in Firebase Firestore (primary cloud storage)
       await updateTeacherPinInFirebase(inputNew);
       setTeacherPin(inputNew);
       localStorage.setItem(TEACHER_PIN_KEY, inputNew);
 
-      // 2. Also try legacy local server
+      // 2. Also update local Express server config if running
       fetch('/api/teacher/change-pin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

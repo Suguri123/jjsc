@@ -56,6 +56,7 @@ export default function TeacherDashboard({
   const [newPinInput, setNewPinInput] = useState('');
   const [pinChangeError, setPinChangeError] = useState('');
   const [pinChangeSuccess, setPinChangeSuccess] = useState(false);
+  const [isSubmittingPin, setIsSubmittingPin] = useState(false);
 
   const handlePinSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -72,17 +73,24 @@ export default function TeacherDashboard({
       return;
     }
 
-    const result = await onChangePin(oldPinInput.trim(), newPinInput.trim());
-    if (result.success) {
-      setPinChangeSuccess(true);
-      setTimeout(() => {
-        setShowChangePinModal(false);
-        setPinChangeSuccess(false);
-        setOldPinInput('');
-        setNewPinInput('');
-      }, 1500);
-    } else {
-      setPinChangeError(result.error || '현재 비밀번호가 일치하지 않습니다.');
+    setIsSubmittingPin(true);
+    try {
+      const result = await onChangePin(oldPinInput.trim(), newPinInput.trim());
+      if (result.success) {
+        setPinChangeSuccess(true);
+        setTimeout(() => {
+          setShowChangePinModal(false);
+          setPinChangeSuccess(false);
+          setOldPinInput('');
+          setNewPinInput('');
+        }, 1500);
+      } else {
+        setPinChangeError(result.error || '현재 비밀번호가 일치하지 않습니다.');
+      }
+    } catch {
+      setPinChangeError('비밀번호 변경 처리 중 오류가 발생했습니다.');
+    } finally {
+      setIsSubmittingPin(false);
     }
   };
 
@@ -338,9 +346,10 @@ export default function TeacherDashboard({
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold"
+                    disabled={isSubmittingPin}
+                    className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold transition-all cursor-pointer"
                   >
-                    변경 저장
+                    {isSubmittingPin ? '변경 저장 중...' : '변경 저장'}
                   </button>
                 </div>
               </form>

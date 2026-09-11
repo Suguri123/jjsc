@@ -98,6 +98,23 @@ export function subscribeTeacherPin(
   });
 }
 
+// Get current Teacher PIN from Firebase
+export async function getTeacherPinFromFirebase(fallbackPin: string = '1234'): Promise<string> {
+  try {
+    const pinDoc = doc(db, 'settings', 'teacherConfig');
+    const snap = await getDoc(pinDoc);
+    if (snap.exists()) {
+      const data = snap.data();
+      if (data && data.pin) {
+        return String(data.pin).trim();
+      }
+    }
+  } catch (err) {
+    console.warn("Error fetching PIN from Firebase:", err);
+  }
+  return fallbackPin.trim() || '1234';
+}
+
 // Update Teacher PIN
 export async function updateTeacherPinInFirebase(newPin: string): Promise<void> {
   const pinDoc = doc(db, 'settings', 'teacherConfig');
@@ -119,3 +136,4 @@ export async function verifyTeacherPinInFirebase(inputPin: string, fallbackPin: 
     return inputPin.trim() === fallbackPin.trim() || inputPin.trim() === '1234';
   }
 }
+
