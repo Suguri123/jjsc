@@ -12,8 +12,10 @@ import {
   BookOpen, 
   Sparkles, 
   Check, 
-  AlertCircle 
+  AlertCircle,
+  FileSpreadsheet
 } from 'lucide-react';
+import { exportStudentsToExcel } from '../utils/exportExcel';
 
 interface TeacherDashboardProps {
   students: Student[];
@@ -103,6 +105,16 @@ export default function TeacherDashboard({
 
         {/* Quick Tools */}
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => exportStudentsToExcel(students)}
+            disabled={students.length === 0}
+            className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+            title="현재 수집된 모든 학생 데이터를 엑셀(CSV) 파일로 일괄 다운로드합니다."
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5" />
+            <span>엑셀 다운로드 ({students.length}명)</span>
+          </button>
+
           <button
             onClick={() => setShowChangePinModal(true)}
             className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer border border-slate-700"

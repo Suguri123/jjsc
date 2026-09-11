@@ -15,8 +15,10 @@ import {
   AlertCircle,
   HelpCircle,
   LayoutGrid,
-  List
+  List,
+  FileSpreadsheet
 } from 'lucide-react';
+import { exportStudentsToExcel } from '../utils/exportExcel';
 
 interface StudentDataViewProps {
   students: Student[];
@@ -160,6 +162,15 @@ export default function StudentDataView({
               샘플 16명 로드
             </button>
             <button
+              onClick={() => exportStudentsToExcel(students)}
+              disabled={students.length === 0}
+              className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-xs sm:text-sm font-bold shadow-md hover:shadow-emerald-200 flex items-center gap-1.5 transition-all cursor-pointer"
+              title="전체 학생 데이터를 엑셀(CSV) 파일로 일괄 다운로드합니다."
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              <span>엑셀 다운로드</span>
+            </button>
+            <button
               onClick={onAddStudent}
               className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-md hover:shadow-indigo-200 flex items-center gap-1.5 transition-all cursor-pointer"
             >
@@ -279,12 +290,22 @@ export default function StudentDataView({
           </div>
 
           <button
+            onClick={() => exportStudentsToExcel(students)}
+            disabled={students.length === 0}
+            className="p-2 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed text-emerald-700 text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5"
+            title="학생 전체 데이터 엑셀(CSV) 다운로드"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+            <span>엑셀 다운로드</span>
+          </button>
+
+          <button
             onClick={handleExport}
             className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-medium transition-colors cursor-pointer flex items-center gap-1"
             title="현재 학생 데이터 JSON 백업 저장"
           >
             <Download className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">저장</span>
+            <span className="hidden sm:inline">JSON 백업</span>
           </button>
 
           <label 
