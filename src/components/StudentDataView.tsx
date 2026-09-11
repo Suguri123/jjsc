@@ -19,6 +19,7 @@ import {
   FileSpreadsheet
 } from 'lucide-react';
 import { exportStudentsToExcel } from '../utils/exportExcel';
+import ExcelSheetView from './ExcelSheetView';
 
 interface StudentDataViewProps {
   students: Student[];
@@ -44,7 +45,7 @@ export default function StudentDataView({
   const [searchTerm, setSearchTerm] = useState('');
   const [filterGender, setFilterGender] = useState<string>('all');
   const [filterGlasses, setFilterGlasses] = useState<string>('all');
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [viewMode, setViewMode] = useState<'excel' | 'grid'>('excel');
   const [showImportNotice, setShowImportNotice] = useState(false);
   const [showSampleNotice, setShowSampleNotice] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -268,24 +269,30 @@ export default function StudentDataView({
 
         {/* View Mode & Backup options */}
         <div className="flex items-center gap-2">
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl">
+          <div className="flex items-center bg-slate-100 p-1 rounded-xl gap-1">
+            <button
+              onClick={() => setViewMode('excel')}
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                viewMode === 'excel' 
+                  ? 'bg-[#107C41] text-white shadow-xs' 
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+              title="초록색 엑셀 스프레드시트 화면으로 보기"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+              <span>엑셀 시트 화면</span>
+            </button>
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                viewMode === 'grid' ? 'bg-white text-indigo-600 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
+                viewMode === 'grid' 
+                  ? 'bg-white text-indigo-600 shadow-xs font-bold' 
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
               title="카드 형태로 보기"
             >
-              <LayoutGrid className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewMode('table')}
-              className={`p-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                viewMode === 'table' ? 'bg-white text-indigo-600 shadow-xs' : 'text-slate-500 hover:text-slate-800'
-              }`}
-              title="표 형태로 보기"
-            >
-              <List className="w-4 h-4" />
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>카드 뷰</span>
             </button>
           </div>
 
@@ -430,65 +437,14 @@ export default function StudentDataView({
           ))}
         </div>
       ) : (
-        /* Table Mode */
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-700">
-            <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
-              <tr>
-                <th className="px-4 py-3">이름 (정답)</th>
-                <th className="px-3 py-3">닉네임 (별명)</th>
-                <th className="px-3 py-3">성별</th>
-                <th className="px-3 py-3">안경</th>
-                <th className="px-3 py-3">옷 색상</th>
-                <th className="px-3 py-3">양말 색</th>
-                <th className="px-3 py-3">성향(E/I)</th>
-                <th className="px-3 py-3">관심분야</th>
-                <th className="px-3 py-3">자신 과목</th>
-                <th className="px-3 py-3 text-right">관리</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredStudents.map((student) => (
-                <tr key={student.id} className="hover:bg-indigo-50/40 transition-colors">
-                  <td className="px-4 py-2.5 font-bold text-slate-900 flex items-center gap-2">
-                    <span className={`w-6 h-6 rounded-lg text-[10px] font-extrabold flex items-center justify-center border ${student.avatarBg || 'bg-slate-100'}`}>
-                      {(student.name || student.nickname).slice(0, 1)}
-                    </span>
-                    {student.name || student.nickname}
-                  </td>
-                  <td className="px-3 py-2.5 font-medium text-indigo-700">{student.nickname}</td>
-                  <td className="px-3 py-2.5">
-                    <span className={`px-1.5 py-0.5 rounded font-medium text-[11px] ${
-                      student.gender === '남학생' ? 'bg-blue-50 text-blue-700' : 'bg-pink-50 text-pink-700'
-                    }`}>
-                      {student.gender}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2.5">{student.glasses}</td>
-                  <td className="px-3 py-2.5">{student.clothingColor.split('(')[0]}</td>
-                  <td className="px-3 py-2.5">{student.socksColor.split('(')[0]}</td>
-                  <td className="px-3 py-2.5 font-medium">{student.mbtiStyle.split(' ')[0]}</td>
-                  <td className="px-3 py-2.5 font-semibold text-indigo-700">{student.interest}</td>
-                  <td className="px-3 py-2.5">{student.subject}</td>
-                  <td className="px-3 py-2.5 text-right space-x-1">
-                    <button
-                      onClick={() => onEditStudent(student)}
-                      className="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-indigo-600"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => onDeleteStudent(student.id)}
-                      className="p-1 rounded hover:bg-rose-50 text-slate-400 hover:text-rose-600"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        /* Excel Sheet View Mode */
+        <ExcelSheetView
+          students={students}
+          onAddStudent={onAddStudent}
+          onEditStudent={onEditStudent}
+          onDeleteStudent={onDeleteStudent}
+          onResetToSample={onResetToSample}
+        />
       )}
     </div>
   );

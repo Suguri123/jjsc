@@ -4,6 +4,7 @@ import StudentDataView from './StudentDataView';
 import ClassroomLotteryGame from './ClassroomLotteryGame';
 import TreeVisualizerView from './TreeVisualizerView';
 import GoogleSheetModal from './GoogleSheetModal';
+import ExcelSheetView from './ExcelSheetView';
 import { 
   Users, 
   Dices, 
@@ -47,7 +48,7 @@ export default function TeacherDashboard({
   teacherPin,
   onChangePin,
 }: TeacherDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'submissions' | 'game' | 'tree'>('submissions');
+  const [activeTab, setActiveTab] = useState<'submissions' | 'excel' | 'game' | 'tree'>('submissions');
   const [showChangePinModal, setShowChangePinModal] = useState(false);
   const [showGoogleSheetModal, setShowGoogleSheetModal] = useState(false);
   const [sheetConfig, setSheetConfig] = useState(() => getGoogleSheetConfig());
@@ -196,6 +197,23 @@ export default function TeacherDashboard({
           </button>
 
           <button
+            onClick={() => setActiveTab('excel')}
+            className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer flex items-center gap-2 ${
+              activeTab === 'excel'
+                ? 'bg-[#107C41] text-white shadow-md'
+                : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200'
+            }`}
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
+            <span>2. 실시간 엑셀 시트 화면</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+              activeTab === 'excel' ? 'bg-white/20 text-white' : 'bg-emerald-50 text-emerald-800'
+            }`}>
+              실시간
+            </span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('game')}
             className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer flex items-center gap-2 ${
               activeTab === 'game'
@@ -204,7 +222,7 @@ export default function TeacherDashboard({
             }`}
           >
             <Dices className="w-4 h-4 text-amber-400" />
-            <span>2. 스무고개 추측 퀴즈</span>
+            <span>3. 스무고개 추측 퀴즈</span>
           </button>
 
           <button
@@ -216,7 +234,7 @@ export default function TeacherDashboard({
             }`}
           >
             <GitFork className="w-4 h-4 text-emerald-400" />
-            <span>3. 결정트리 지도</span>
+            <span>4. 결정트리 지도</span>
           </button>
         </div>
       </div>
@@ -233,6 +251,18 @@ export default function TeacherDashboard({
           onImportData={onImportData}
           onGoToGame={() => setActiveTab('game')}
         />
+      )}
+
+      {activeTab === 'excel' && (
+        <div className="space-y-4">
+          <ExcelSheetView
+            students={students}
+            onAddStudent={onAddStudent}
+            onEditStudent={onEditStudent}
+            onDeleteStudent={onDeleteStudent}
+            onResetToSample={onResetToSample}
+          />
+        </div>
       )}
 
       {activeTab === 'game' && (
