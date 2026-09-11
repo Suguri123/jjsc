@@ -1,0 +1,6 @@
+{
+  "name": "결정트리 스무고개 - 우리 반 친구를 찾아라!",
+  "description": "초등학교 6학년 인공지능 결정트리 학습을 위한 학생 데이터 기반 인터랙티브 스무고개 및 결정트리 시각화 수업 도구",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
