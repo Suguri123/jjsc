@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Student } from '../types';
 import { exportStudentsToExcel } from '../utils/exportExcel';
 import { 
@@ -11,7 +11,10 @@ import {
   RotateCcw, 
   UserPlus, 
   Trash2,
-  Edit2
+  Edit2,
+  Zap,
+  Bell,
+  CheckCircle2
 } from 'lucide-react';
 
 interface ExcelSheetViewProps {
@@ -48,6 +51,67 @@ export default function ExcelSheetView({
   const [selectedCell, setSelectedCell] = useState<{ row: number; col: string } | null>({ row: 1, col: 'B' });
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [activeSheet, setActiveSheet] = useState<'all' | 'summary'>('all');
+
+  // Real-time update tracking & highlight
+  const [highlightedIds, setHighlightedIds] = useState<Set<string>>(new Set());
+  const [liveBanner, setLiveBanner] = useState<{ message: string; time: string; studentName: string } | null>(null);
+  const prevStudentsRef = useRef<Student[]>(students);
+  const isInitialMount = useRef(true);
+
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      prevStudentsRef.current = students;
+      return;
+    }
+
+    const prevMap = new Map(prevStudentsRef.current.map(s => [s.id, s]));
+    const newlyAddedOrUpdated: string[] = [];
+    let latestUpdatedStudent: Student | null = null;
+
+    students.forEach(s => {
+      const prev = prevMap.get(s.id);
+      if (!prev) {
+        newlyAddedOrUpdated.push(s.id);
+        latestUpdatedStudent = s;
+      } else if (JSON.stringify(prev) !== JSON.stringify(s)) {
+        newlyAddedOrUpdated.push(s.id);
+        latestUpdatedStudent = s;
+      }
+    });
+
+    if (newlyAddedOrUpdated.length > 0) {
+      setHighlightedIds(prev => {
+        const next = new Set(prev);
+        newlyAddedOrUpdated.forEach(id => next.add(id));
+        return next;
+      });
+
+      if (latestUpdatedStudent) {
+        const studentObj = latestUpdatedStudent as Student;
+        const nameText = `${studentObj.name || studentObj.nickname} (${studentObj.nickname})`;
+        const timeText = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        setLiveBanner({
+          message: `방금 "${nameText}" 학생의 데이터가 실시간으로 입력되었습니다! 🎉`,
+          time: timeText,
+          studentName: nameText
+        });
+      }
+
+      const timer = setTimeout(() => {
+        setHighlightedIds(prev => {
+          const next = new Set(prev);
+          newlyAddedOrUpdated.forEach(id => next.delete(id));
+          return next;
+        });
+      }, 6000);
+
+      prevStudentsRef.current = students;
+      return () => clearTimeout(timer);
+    }
+
+    prevStudentsRef.current = students;
+  }, [students]);
 
   // Filter students by search
   const filteredStudents = useMemo(() => {
@@ -167,6 +231,29 @@ export default function ExcelSheetView({
         </div>
       </div>
 
+      {/* Real-time Live Update Notification Bar */}
+      {liveBanner && (
+        <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-green-600 text-white px-4 py-2 text-xs font-bold flex items-center justify-between shadow-sm animate-fadeIn">
+          <div className="flex items-center gap-2">
+            <span className="p-1 rounded-md bg-white/20 animate-pulse">
+              <Zap className="w-3.5 h-3.5 text-yellow-300 fill-yellow-300" />
+            </span>
+            <span className="tracking-tight">{liveBanner.message}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] text-emerald-100 bg-black/20 px-2 py-0.5 rounded font-mono">
+              ⚡ 실시간 수신: {liveBanner.time}
+            </span>
+            <button
+              onClick={() => setLiveBanner(null)}
+              className="text-white/80 hover:text-white text-xs cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Excel Sheet Table Grid */}
       <div className="flex-1 overflow-auto bg-slate-100 max-h-[560px] select-text">
         <table className="w-full border-collapse text-xs text-slate-800 bg-white font-sans">
@@ -208,21 +295,36 @@ export default function ExcelSheetView({
               filteredStudents.map((student, index) => {
                 const rowNum = index + 1;
                 const isSelectedRow = selectedCell?.row === rowNum;
+                const isHighlighted = highlightedIds.has(student.id);
 
                 return (
                   <tr
                     key={student.id}
-                    className={`border-b border-slate-200 hover:bg-emerald-50/50 transition-colors group ${
-                      isSelectedRow ? 'bg-emerald-50/40' : index % 2 === 0 ? 'bg-white' : 'bg-[#FAFAFA]'
+                    className={`border-b border-slate-200 transition-all duration-500 group ${
+                      isHighlighted
+                        ? 'bg-emerald-100/95 ring-2 ring-emerald-500 ring-inset font-bold shadow-xs'
+                        : isSelectedRow 
+                          ? 'bg-emerald-50/40' 
+                          : index % 2 === 0 ? 'bg-white' : 'bg-[#FAFAFA]'
                     }`}
                   >
                     {/* Row Number Header (1, 2, 3...) */}
                     <td
-                      className={`border-r border-slate-300 font-mono text-[11px] text-center select-none font-bold py-1.5 px-1 ${
-                        isSelectedRow ? 'bg-emerald-600 text-white' : 'bg-[#F3F2F1] text-slate-500 group-hover:bg-slate-200'
+                      className={`border-r border-slate-300 font-mono text-[11px] text-center select-none font-bold py-1.5 px-1 relative ${
+                        isHighlighted
+                          ? 'bg-emerald-500 text-white font-black'
+                          : isSelectedRow 
+                            ? 'bg-emerald-600 text-white' 
+                            : 'bg-[#F3F2F1] text-slate-500 group-hover:bg-slate-200'
                       }`}
                     >
                       {rowNum}
+                      {isHighlighted && (
+                        <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                      )}
                     </td>
 
                     {/* Col A: Number */}
@@ -403,7 +505,10 @@ export default function ExcelSheetView({
 
         {/* Excel Status Indicators */}
         <div className="flex items-center gap-4 text-[11px] text-slate-500 font-mono">
-          <span>준비 완료</span>
+          <span className="flex items-center gap-1.5 text-emerald-700 font-bold">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            실시간 업데이트 수신 중
+          </span>
           <span>전체 레코드: <strong className="text-slate-800">{students.length}행</strong></span>
           <span className="hidden sm:inline">선택 셀: <strong className="text-emerald-700">{selectedCell ? `${selectedCell.col}${selectedCell.row}` : '없음'}</strong></span>
         </div>
