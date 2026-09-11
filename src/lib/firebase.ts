@@ -13,15 +13,15 @@ import {
 } from 'firebase/firestore';
 import type { Student } from '../types';
 
-// Load Firebase configuration
+// Load Firebase configuration from environment variables
 const firebaseConfig = {
-  projectId: "gen-lang-client-0035505654",
-  appId: "1:209804329788:web:8570ad981a067424bfd439",
-  apiKey: "AIzaSyBnCo9vUvk0ehioBe44lMTwbsFl5FGcm44",
-  authDomain: "gen-lang-client-0035505654.firebaseapp.com",
-  firestoreDatabaseId: "ai-studio-4f6d9840-3470-47aa-ae41-842f7fe51254",
-  storageBucket: "gen-lang-client-0035505654.firebasestorage.app",
-  messagingSenderId: "209804329788"
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "gen-lang-client-0035505654",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:209804329788:web:8570ad981a067424bfd439",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyBnCo9vUvk0ehioBe44lMTwbsFl5FGcm44",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "gen-lang-client-0035505654.firebaseapp.com",
+  firestoreDatabaseId: import.meta.env.VITE_FIREBASE_DATABASE_ID || "ai-studio-4f6d9840-3470-47aa-ae41-842f7fe51254",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "gen-lang-client-0035505654.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "209804329788"
 };
 
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
